@@ -1,0 +1,19 @@
+# dependencias
+/node_modules
+
+# build / cache
+/.next
+/out
+*.tsbuildinfo
+next-env.d.ts
+
+# entorno (NO subir secretos; .env.example sí se versiona)
+.env
+.env.local
+.env*.local
+
+# logs y SO
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db

@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────────────
+//  Autenticación (NextAuth) + Usuario
+// ──────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String? // hash bcrypt para login con credenciales
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+
+  perfil   Perfil?
+  roadmap  Roadmap?
+  accounts Account[]
+  sessions Session[]
+
+  // Gamificación
+  rachaDias       Int       @default(0)
+  ultimaActividad DateTime?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ──────────────────────────────────────────────
+//  Épica 1: Diagnóstico y perfil
+// ──────────────────────────────────────────────
+
+model Perfil {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Épica 1: Diagnóstico
+  personalidad Json? // Resultado Big Five / RIASEC
+  hardSkills   Json? // Resultado del check técnico
+  hobbies      String[] // Lista de intereses seleccionados
+  modalidad    String   @default("hibrido") // "academico" | "autodidacta" | "hibrido"
+
+  // Épica 2: Disponibilidad
+  horasSemanales Int?
+  diasEstudio    String[] // ["lunes", "miercoles", "viernes"]
+
+  // Épica 3: Rubro IT elegido
+  rubroIT  String? // "desarrollo" | "infraestructura" | "datos" | "gestion"
+  subRubro String? // "web" | "mobile" | "gamedev" | "devops" | etc.
+
+  // Preferencia de costo
+  preferenciaCosto String @default("mixto") // "gratis" | "pago" | "mixto"
+
+  diagnosticoCompleto Boolean  @default(false)
+  actualizadoEn       DateTime @updatedAt
+}
+
+// ──────────────────────────────────────────────
+//  Épica 2: Roadmap
+// ──────────────────────────────────────────────
+
+model Roadmap {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titulo        String   @default("Mi roadmap")
+  rubroIT       String?
+  subRubro      String?
+  etapas        Etapa[]
+  progreso      Int      @default(0)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+}
+
+model Etapa {
+  id          String      @id @default(cuid())
+  roadmapId   String
+  roadmap     Roadmap     @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  titulo      String
+  descripcion String
+  orden       Int
+  completada  Boolean     @default(false)
+  recursos    Recurso[]
+  micrometas  Micrometa[]
+}
+
+model Micrometa {
+  id          String    @id @default(cuid())
+  etapaId     String
+  etapa       Etapa     @relation(fields: [etapaId], references: [id], onDelete: Cascade)
+  titulo      String
+  fechaLimite DateTime?
+  completada  Boolean   @default(false)
+}
+
+model Recurso {
+  id        String  @id @default(cuid())
+  etapaId   String?
+  etapa     Etapa?  @relation(fields: [etapaId], references: [id], onDelete: Cascade)
+  titulo    String
+  url       String
+  tipo      String // "video" | "articulo" | "repositorio" | "curso"
+  costo     String // "gratis" | "pago"
+  modalidad String  @default("hibrido") // "academico" | "autodidacta" | "hibrido"
+  rubroIT   String? // para la biblioteca explorable independiente del roadmap
+  visitado  Boolean @default(false)
+}
