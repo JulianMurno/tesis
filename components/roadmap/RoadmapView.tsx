@@ -129,7 +129,7 @@ export default function RoadmapView({ etapas: inicial }: { etapas: EtapaVM[] }) 
               {/* tarjeta */}
               <div
                 className={clsx(
-                  "flex-1 rounded-2xl p-4 ring-1 transition",
+                  "min-w-0 flex-1 rounded-2xl p-4 ring-1 transition",
                   bloqueada ? "bg-slate-50 ring-slate-100" : "bg-white ring-slate-100 shadow-sm"
                 )}
               >
@@ -189,8 +189,8 @@ export default function RoadmapView({ etapas: inicial }: { etapas: EtapaVM[] }) 
                           onClick={() => marcarVisitado(r)}
                           className="flex items-center gap-2.5 rounded-lg bg-slate-50 px-3 py-2 text-sm transition hover:bg-brand-50"
                         >
-                          <i className={clsx(TIPO_ICONO[r.tipo] ?? "fa-solid fa-link", "w-4 text-center text-brand-500")} />
-                          <span className="flex-1 truncate text-slate-700">{r.titulo}</span>
+                          <i className={clsx(TIPO_ICONO[r.tipo] ?? "fa-solid fa-link", "w-4 shrink-0 text-center text-brand-500")} />
+                          <span className="min-w-0 flex-1 truncate text-slate-700">{r.titulo}</span>
                           <span className={clsx(
                             "rounded-full px-2 py-0.5 text-[10px] font-semibold",
                             r.costo === "gratis" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"

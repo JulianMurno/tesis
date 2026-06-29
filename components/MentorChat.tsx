@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 
 interface Msg {
   role: "user" | "model";
@@ -80,16 +81,15 @@ export default function MentorChat() {
           <div className="flex-1 space-y-3 overflow-y-auto bg-slate-50 p-3">
             {mensajes.map((m, i) => (
               <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
-                <span
-                  className={
-                    "inline-block max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm " +
-                    (m.role === "user"
-                      ? "bg-brand-600 text-white"
-                      : "bg-white text-slate-700 ring-1 ring-slate-200")
-                  }
-                >
-                  {m.content}
-                </span>
+                {m.role === "user" ? (
+                  <span className="inline-block max-w-[85%] whitespace-pre-wrap rounded-2xl bg-brand-600 px-3 py-2 text-sm text-white">
+                    {m.content}
+                  </span>
+                ) : (
+                  <div className="chat-md inline-block max-w-[85%] rounded-2xl bg-white px-3 py-2 text-left text-sm text-slate-700 ring-1 ring-slate-200">
+                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                  </div>
+                )}
               </div>
             ))}
             {cargando && (

@@ -14,6 +14,8 @@ import {
   type RoadmapIA,
 } from "./gemini";
 import { getPlantilla } from "./plantillas";
+import { filtrarRecursosVivos } from "./verificar";
+import { buscarVideos, youtubeDisponible } from "./youtube";
 
 export interface RecursoGenerado {
   titulo: string;
@@ -108,11 +110,89 @@ export async function generarRoadmap(perfil: PerfilParaIA): Promise<RoadmapGener
     etapas = desdePlantilla(perfil);
   }
 
+  // Las URLs generadas por IA pueden estar rotas/inventadas: las verificamos y
+  // descartamos las muertas. Si una etapa queda sin recursos, la rellenamos con
+  // recursos curados de la plantilla del subrubro (URLs estables).
+  if (fuente === "ia") {
+    etapas = await depurarRecursos(etapas, perfil);
+  }
+
+  // Agrega videos REALES de YouTube a cada etapa (si hay YOUTUBE_API_KEY).
+  etapas = await enriquecerConVideos(etapas, perfil);
+
   // Si el filtro de costo dejó alguna etapa sin recursos, no la rompemos:
   // queda visible aunque sin recursos (el usuario puede explorar la biblioteca).
   etapas = aplicarTimeBlocking(etapas, perfil.horasSemanales, perfil.diasEstudio);
 
   return { etapas, fuente };
+}
+
+/**
+ * Suma a cada etapa 1-2 videos reales de YouTube relacionados con su título.
+ * Los videos vienen de la YouTube Data API, así que sus URLs siempre existen.
+ */
+async function enriquecerConVideos(
+  etapas: EtapaGenerada[],
+  perfil: PerfilParaIA
+): Promise<EtapaGenerada[]> {
+  if (!youtubeDisponible()) return etapas;
+
+  const contexto = perfil.subRubro || perfil.rubroIT || "programación";
+  const resultados = await Promise.all(
+    etapas.map((e) => buscarVideos(`${e.titulo} ${contexto} tutorial español`, 2))
+  );
+
+  return etapas.map((etapa, i) => {
+    const existentes = new Set(etapa.recursos.map((r) => r.url));
+    const videos: RecursoGenerado[] = resultados[i]
+      .filter((v) => !existentes.has(v.url))
+      .map((v) => ({
+        titulo: v.canal ? `${v.titulo} — ${v.canal}` : v.titulo,
+        url: v.url,
+        tipo: "video" as const,
+        costo: "gratis" as const,
+        modalidad: perfil.modalidad,
+      }));
+    return { ...etapa, recursos: [...etapa.recursos, ...videos] };
+  });
+}
+
+/**
+ * Verifica las URLs de cada etapa (descarta enlaces rotos) y, si una etapa se
+ * queda sin recursos, agrega recursos curados de la plantilla del subrubro.
+ */
+async function depurarRecursos(
+  etapas: EtapaGenerada[],
+  perfil: PerfilParaIA
+): Promise<EtapaGenerada[]> {
+  // Pool de recursos curados (estables) para backfill.
+  const pool: RecursoGenerado[] = getPlantilla(perfil.subRubro)
+    .etapas.flatMap((e) => e.recursos)
+    .filter((r) => pasaFiltroCosto(r.costo, perfil.preferenciaCosto))
+    .map((r) => ({
+      titulo: r.titulo,
+      url: r.url,
+      tipo: r.tipo,
+      costo: r.costo,
+      modalidad: r.modalidad ?? perfil.modalidad,
+    }));
+
+  const usadas = new Set<string>();
+  const out: EtapaGenerada[] = [];
+
+  for (const etapa of etapas) {
+    let recursos = await filtrarRecursosVivos(etapa.recursos);
+
+    // Backfill si quedó vacía.
+    if (recursos.length === 0) {
+      const reemplazo = pool.find((r) => !usadas.has(r.url));
+      if (reemplazo) recursos = [reemplazo];
+    }
+    recursos.forEach((r) => usadas.add(r.url));
+    out.push({ ...etapa, recursos });
+  }
+
+  return out;
 }
 
 // ──────────────────────────────────────────────

@@ -68,10 +68,10 @@ export default async function RoadmapPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <RoadmapView etapas={etapasVM} />
         </div>
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <PivotajeSimulator subRubroActual={roadmap.subRubro} />
           <Link href="/recursos" className="card card-hover block">
             <h2 className="flex items-center gap-2 font-bold text-slate-800">

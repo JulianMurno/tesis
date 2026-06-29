@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -8,12 +9,15 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="pointer-events-none absolute inset-0 bg-aurora" aria-hidden />
 
       <div className="relative w-full max-w-md">
-        <Link
-          href="/"
-          className="mb-6 flex items-center justify-center gap-2 font-display text-2xl font-extrabold text-brand-700"
-        >
-          <i className="fa-solid fa-compass text-accent-500" />
-          Mentor<span className="text-accent-500">IT</span>
+        <Link href="/" className="mb-5 flex justify-center">
+          <Image
+            src="/logo.png"
+            alt="MentorIT"
+            width={1024}
+            height={1024}
+            priority
+            className="h-24 w-24 object-contain"
+          />
         </Link>
         <div className="card shadow-glow">{children}</div>
         <p className="mt-5 text-center text-xs text-slate-400">

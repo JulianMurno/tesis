@@ -17,6 +17,9 @@ export interface SubRubro {
   id: string;
   nombre: string;
   descripcion: string;
+  // Afinidad para recomendar el rol tras el test (RIASEC dominantes + hobbies).
+  riasec?: RiasecTipo[];
+  hobbies?: string[];
 }
 
 export interface Rubro {
@@ -34,9 +37,14 @@ export const RUBROS: Rubro[] = [
     descripcion: "Construís software: webs, apps y videojuegos.",
     icono: "💻",
     subRubros: [
-      { id: "web", nombre: "Desarrollo Web", descripcion: "Frontend y backend de aplicaciones web." },
-      { id: "mobile", nombre: "Desarrollo Mobile", descripcion: "Apps para Android e iOS." },
-      { id: "gamedev", nombre: "GameDev", descripcion: "Videojuegos con Unity o Godot." },
+      { id: "frontend", nombre: "Frontend", descripcion: "Interfaces con HTML, CSS, JS y React.", riasec: ["A", "I"], hobbies: ["diseno", "gaming", "logica"] },
+      { id: "backend", nombre: "Backend", descripcion: "APIs, bases de datos y lógica de servidor.", riasec: ["I", "C"], hobbies: ["logica", "orden"] },
+      { id: "fullstack", nombre: "Full Stack", descripcion: "Frontend + backend de punta a punta.", riasec: ["I", "A"], hobbies: ["logica", "diseno"] },
+      { id: "web", nombre: "Desarrollo Web", descripcion: "Aplicaciones web completas.", riasec: ["I", "A"], hobbies: ["logica", "diseno"] },
+      { id: "mobile", nombre: "Desarrollo Mobile", descripcion: "Apps para Android e iOS.", riasec: ["I", "A"], hobbies: ["gaming", "diseno"] },
+      { id: "gamedev", nombre: "GameDev", descripcion: "Videojuegos con Unity o Godot.", riasec: ["A", "R"], hobbies: ["gaming", "diseno"] },
+      { id: "qa", nombre: "QA / Testing", descripcion: "Pruebas manuales y automatizadas.", riasec: ["C", "I"], hobbies: ["orden", "logica"] },
+      { id: "embebidos", nombre: "Sistemas Embebidos / IoT", descripcion: "Hardware, microcontroladores y firmware.", riasec: ["R", "I"], hobbies: ["hardware", "logica"] },
     ],
   },
   {
@@ -45,9 +53,13 @@ export const RUBROS: Rubro[] = [
     descripcion: "Mantenés sistemas, redes y la nube funcionando.",
     icono: "🛠️",
     subRubros: [
-      { id: "soporte", nombre: "Soporte IT", descripcion: "Mesa de ayuda y administración de sistemas." },
-      { id: "devops", nombre: "DevOps", descripcion: "Automatización, CI/CD y contenedores." },
-      { id: "cloud", nombre: "Cloud", descripcion: "AWS, Azure y arquitectura en la nube." },
+      { id: "soporte", nombre: "Soporte IT", descripcion: "Mesa de ayuda y administración de sistemas.", riasec: ["R", "S", "C"], hobbies: ["hardware", "orden", "redes"] },
+      { id: "redes", nombre: "Redes", descripcion: "Routing, switching y administración de redes.", riasec: ["R", "C"], hobbies: ["redes", "orden"] },
+      { id: "sysadmin", nombre: "Administrador de Sistemas", descripcion: "Servidores Linux/Windows y servicios.", riasec: ["R", "C", "I"], hobbies: ["hardware", "orden", "redes"] },
+      { id: "devops", nombre: "DevOps", descripcion: "Automatización, CI/CD y contenedores.", riasec: ["I", "C", "R"], hobbies: ["orden", "logica", "redes"] },
+      { id: "sre", nombre: "SRE", descripcion: "Confiabilidad, observabilidad y escalabilidad.", riasec: ["I", "C"], hobbies: ["orden", "logica"] },
+      { id: "cloud", nombre: "Cloud", descripcion: "AWS, Azure y arquitectura en la nube.", riasec: ["I", "C"], hobbies: ["redes", "orden"] },
+      { id: "ciberseguridad", nombre: "Ciberseguridad", descripcion: "Seguridad ofensiva, defensiva y pentesting.", riasec: ["I", "R"], hobbies: ["logica", "redes"] },
     ],
   },
   {
@@ -56,19 +68,25 @@ export const RUBROS: Rubro[] = [
     descripcion: "Analizás información para tomar decisiones.",
     icono: "📊",
     subRubros: [
-      { id: "analista", nombre: "Analista de Datos", descripcion: "SQL, dashboards y visualización." },
-      { id: "cientifico", nombre: "Científico de Datos", descripcion: "Estadística, Python y modelos." },
-      { id: "ia", nombre: "Inteligencia Artificial", descripcion: "Machine Learning y deep learning." },
+      { id: "analista", nombre: "Analista de Datos", descripcion: "SQL, dashboards y visualización.", riasec: ["I", "C"], hobbies: ["numeros", "orden", "logica"] },
+      { id: "bi", nombre: "Business Intelligence", descripcion: "Reporting, KPIs y herramientas BI.", riasec: ["C", "E", "I"], hobbies: ["numeros", "orden"] },
+      { id: "ingenieria", nombre: "Ingeniería de Datos", descripcion: "Pipelines, ETL y data warehouses.", riasec: ["I", "C"], hobbies: ["orden", "logica", "numeros"] },
+      { id: "cientifico", nombre: "Científico de Datos", descripcion: "Estadística, Python y modelos.", riasec: ["I"], hobbies: ["numeros", "logica"] },
+      { id: "ia", nombre: "Inteligencia Artificial", descripcion: "Machine Learning y deep learning.", riasec: ["I"], hobbies: ["numeros", "logica"] },
+      { id: "mlops", nombre: "MLOps", descripcion: "Despliegue y operación de modelos de ML.", riasec: ["I", "C"], hobbies: ["orden", "logica"] },
     ],
   },
   {
     id: "gestion",
-    nombre: "Gestión y Educación",
-    descripcion: "Coordinás proyectos o enseñás tecnología.",
+    nombre: "Gestión, Diseño y Educación",
+    descripcion: "Coordinás proyectos, diseñás o enseñás tecnología.",
     icono: "🎯",
     subRubros: [
-      { id: "pm", nombre: "Product Manager", descripcion: "Gestión de producto y metodologías ágiles." },
-      { id: "profesor", nombre: "Profesor IT", descripcion: "Enseñanza y creación de contenido técnico." },
+      { id: "pm", nombre: "Product Manager", descripcion: "Gestión de producto y metodologías ágiles.", riasec: ["E", "S"], hobbies: ["liderar", "enseñar", "escribir"] },
+      { id: "scrum", nombre: "Scrum Master / Agile", descripcion: "Facilitación ágil y gestión de equipos.", riasec: ["S", "E"], hobbies: ["liderar", "enseñar"] },
+      { id: "ux", nombre: "Diseño UX/UI", descripcion: "Investigación, wireframes y diseño de interfaces.", riasec: ["A", "S", "I"], hobbies: ["diseno", "enseñar"] },
+      { id: "marketing", nombre: "Marketing Digital / Tech", descripcion: "SEO, analítica y growth.", riasec: ["E", "A"], hobbies: ["escribir", "diseno"] },
+      { id: "profesor", nombre: "Profesor IT", descripcion: "Enseñanza y creación de contenido técnico.", riasec: ["S", "A"], hobbies: ["enseñar", "escribir"] },
     ],
   },
 ];
@@ -331,4 +349,74 @@ export function sugerirRubros(
       porcentaje: Math.round((scores[id] / total) * 100),
     }))
     .sort((a, b) => b.score - a.score);
+}
+
+// ──────────────────────────────────────────────
+//  Sugerencia de subrubros / roles (post-test)
+// ──────────────────────────────────────────────
+
+export interface SugerenciaSubRubro {
+  rubroId: RubroId;
+  subId: string;
+  nombre: string;
+  rubroNombre: string;
+  icono: string;
+  descripcion: string;
+  match: number; // 0-99, "match %" para mostrar
+}
+
+/**
+ * Rankea TODOS los subrubros según el perfil del usuario, combinando:
+ *  - afinidad RIASEC específica del rol,
+ *  - hobbies seleccionados que matchean con el rol,
+ *  - afinidad del rubro padre (de sugerirRubros).
+ * Devuelve los mejores roles, ordenados de mayor a menor.
+ */
+export function sugerirSubRubros(
+  riasec: ResultadoRiasec,
+  hobbies: string[],
+  limite = 5
+): SugerenciaSubRubro[] {
+  // % de afinidad por rubro padre (0-100).
+  const pctRubro: Record<string, number> = {};
+  for (const s of sugerirRubros(riasec, hobbies)) pctRubro[s.rubroId] = s.porcentaje;
+
+  const maxPuntajeRiasec = Math.max(1, ...Object.values(riasec.puntajes));
+  const IDEAL = 28; // tope teórico para normalizar el match
+
+  const ranking: SugerenciaSubRubro[] = [];
+
+  for (const rubro of RUBROS) {
+    for (const sub of rubro.subRubros) {
+      // RIASEC: promedio (0-10) de los tipos afines al rol.
+      let riasecScore = 0;
+      if (sub.riasec?.length) {
+        const suma = sub.riasec.reduce((acc, t) => acc + riasec.puntajes[t], 0);
+        riasecScore = (suma / sub.riasec.length / maxPuntajeRiasec) * 10;
+      }
+      // Hobbies: proporción de hobbies del rol que el usuario eligió (0-10).
+      let hobbyScore = 0;
+      if (sub.hobbies?.length) {
+        const matches = sub.hobbies.filter((h) => hobbies.includes(h)).length;
+        hobbyScore = (matches / sub.hobbies.length) * 10;
+      }
+      // Rubro padre (0-8).
+      const parentScore = ((pctRubro[rubro.id] ?? 0) / 100) * 8;
+
+      const total = riasecScore + hobbyScore + parentScore;
+      const match = Math.max(20, Math.min(99, Math.round((total / IDEAL) * 100)));
+
+      ranking.push({
+        rubroId: rubro.id,
+        subId: sub.id,
+        nombre: sub.nombre,
+        rubroNombre: rubro.nombre,
+        icono: rubro.icono,
+        descripcion: sub.descripcion,
+        match,
+      });
+    }
+  }
+
+  return ranking.sort((a, b) => b.match - a.match).slice(0, limite);
 }

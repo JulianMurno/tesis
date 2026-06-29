@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { RUBROS } from "@/lib/catalogo";
 
 const RUBRO_ICON: Record<string, string> = {
@@ -48,7 +49,15 @@ export default function HomePage() {
           </nav>
         </header>
 
-        <section className="mx-auto max-w-4xl px-6 pb-12 pt-10 text-center">
+        <section className="mx-auto max-w-4xl px-6 pb-12 pt-6 text-center">
+          <Image
+            src="/logo.png"
+            alt="MentorIT"
+            width={1024}
+            height={1024}
+            priority
+            className="mx-auto mb-6 h-28 w-28 object-contain animate-float sm:h-32 sm:w-32"
+          />
           <span className="chip bg-brand-100 text-brand-700 shadow-sm">
             <i className="fa-solid fa-graduation-cap" />
             EdTech · Orientación vocacional IT para LATAM

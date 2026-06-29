@@ -13,6 +13,8 @@ const schema = z.object({
   rubroIT: z.string().optional(),
   subRubro: z.string().optional(),
   preferenciaCosto: z.enum(["gratis", "pago", "mixto"]).optional(),
+  ciudad: z.string().max(120).optional(),
+  pais: z.string().max(80).optional(),
   diagnosticoCompleto: z.boolean().optional(),
 });
 

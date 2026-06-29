@@ -9,6 +9,8 @@ const LINKS = [
   { href: "/dashboard", label: "Inicio", icon: "fa-solid fa-house" },
   { href: "/roadmap", label: "Mi Roadmap", icon: "fa-solid fa-route" },
   { href: "/recursos", label: "Biblioteca", icon: "fa-solid fa-book-open" },
+  { href: "/carreras", label: "Carreras", icon: "fa-solid fa-building-columns" },
+  { href: "/cv", label: "Mi CV", icon: "fa-solid fa-file-lines" },
   { href: "/perfil", label: "Mi Perfil", icon: "fa-solid fa-user" },
 ];
 

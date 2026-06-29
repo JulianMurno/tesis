@@ -33,17 +33,39 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     ...(googleId && googleSecret
-      ? [GoogleProvider({ clientId: googleId, clientSecret: googleSecret })]
+      ? [
+          GoogleProvider({
+            clientId: googleId,
+            clientSecret: googleSecret,
+            // Permite que una misma persona use Google y credenciales con el
+            // mismo email sin el error "OAuthAccountNotLinked".
+            allowDangerousEmailAccountLinking: true,
+            // El timeout por defecto (3500ms) es muy bajo para conexiones lentas
+            // y provoca "OAUTH_CALLBACK_ERROR: request timed out". Lo subimos.
+            httpOptions: { timeout: 10000 },
+          }),
+        ]
       : []),
   ],
+  events: {
+    // Cuando el adapter crea un usuario nuevo (p. ej. primer login con Google),
+    // le creamos su Perfil vacío para que arranque el flujo de diagnóstico.
+    async createUser({ user }) {
+      try {
+        await prisma.perfil.create({ data: { userId: user.id } });
+      } catch {
+        // Si ya existe (carrera/credenciales), lo ignoramos.
+      }
+    },
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) token.id = user.id;
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.id) {
-        (session.user as { id?: string }).id = token.id as string;
+      if (session.user) {
+        (session.user as { id?: string }).id = (token.id as string) ?? token.sub;
       }
       return session;
     },

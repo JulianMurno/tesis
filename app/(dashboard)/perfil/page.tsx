@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUsuarioActual } from "@/lib/session";
 import { getRubro, getSubRubro, HOBBIES, RIASEC_LABELS, type RiasecTipo } from "@/lib/catalogo";
+import EliminarCuentaButton from "@/components/perfil/EliminarCuentaButton";
 
 export const metadata = { title: "Mi Perfil · MentorIT" };
 
@@ -106,6 +107,9 @@ export default async function PerfilPage() {
             <i className="fa-solid fa-calendar-days text-brand-500" /> Disponibilidad y preferencias
           </h2>
           <div className="space-y-3">
+            <Dato label="Ubicación">
+              {p?.ciudad ? `${p.ciudad}${p.pais ? `, ${p.pais}` : ""}` : "—"}
+            </Dato>
             <Dato label="Horas por semana">{p?.horasSemanales ? `${p.horasSemanales}h` : "—"}</Dato>
             <Dato label="Días de estudio">
               {(p?.diasEstudio ?? []).map((d) => DIAS_LABEL[d] ?? d).join(", ") || "—"}
@@ -116,10 +120,11 @@ export default async function PerfilPage() {
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <Link href="/diagnostico" className="btn-secondary">
           <i className="fa-solid fa-rotate-right" /> Rehacer diagnóstico
         </Link>
+        <EliminarCuentaButton />
       </div>
     </div>
   );

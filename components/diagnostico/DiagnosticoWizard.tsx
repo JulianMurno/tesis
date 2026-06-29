@@ -11,6 +11,7 @@ import {
   calcularRiasec,
   calcularSkills,
   sugerirRubros,
+  sugerirSubRubros,
   RIASEC_LABELS,
   type RubroId,
 } from "@/lib/catalogo";
@@ -52,8 +53,14 @@ export default function DiagnosticoWizard() {
   const [diasEstudio, setDiasEstudio] = useState<string[]>(["lunes", "miercoles", "viernes"]);
   const [preferenciaCosto, setPreferenciaCosto] = useState("mixto");
 
+  // Geolocalización (se pregunta al principio, antes de los pasos)
+  const [ubicacionLista, setUbicacionLista] = useState(false);
+  const [ciudad, setCiudad] = useState("");
+  const [pais, setPais] = useState("Argentina");
+
   const resultadoRiasec = calcularRiasec(riasec);
   const sugerencias = sugerirRubros(resultadoRiasec, hobbies);
+  const subSugerencias = sugerirSubRubros(resultadoRiasec, hobbies, 5);
 
   function toggle(list: string[], setList: (v: string[]) => void, id: string) {
     setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
@@ -82,6 +89,8 @@ export default function DiagnosticoWizard() {
         horasSemanales,
         diasEstudio,
         preferenciaCosto,
+        ciudad: ciudad.trim(),
+        pais: pais.trim(),
         diagnosticoCompleto: true,
       };
       const r1 = await fetch("/api/diagnostico", {
@@ -105,6 +114,58 @@ export default function DiagnosticoWizard() {
   }
 
   const subRubrosDisponibles = RUBROS.find((r) => r.id === rubroIT)?.subRubros ?? [];
+
+  // ── Pantalla inicial: ¿Dónde vivís? (geolocalización) ──
+  if (!ubicacionLista) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <div className="card animate-fade-in">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-2xl text-brand-600">
+            <i className="fa-solid fa-location-dot" />
+          </div>
+          <h2 className="mt-4 text-center text-xl font-bold text-slate-900">¿Dónde vivís?</h2>
+          <p className="mx-auto mt-1 max-w-md text-center text-sm text-slate-500">
+            Lo usamos para sugerirte carreras universitarias y tecnicaturas cercanas a tu ciudad.
+          </p>
+
+          <div className="mx-auto mt-6 max-w-md space-y-4">
+            <div>
+              <label className="label">Ciudad</label>
+              <div className="relative">
+                <i className="fa-solid fa-city pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  className="input pl-10"
+                  value={ciudad}
+                  onChange={(e) => setCiudad(e.target.value)}
+                  placeholder="Ej: Córdoba, Rosario, La Plata…"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div>
+              <label className="label">País</label>
+              <div className="relative">
+                <i className="fa-solid fa-earth-americas pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  className="input pl-10"
+                  value={pais}
+                  onChange={(e) => setPais(e.target.value)}
+                  placeholder="País"
+                />
+              </div>
+            </div>
+            <button
+              className="btn-primary w-full"
+              disabled={ciudad.trim().length < 2 || pais.trim().length < 2}
+              onClick={() => setUbicacionLista(true)}
+            >
+              Empezar diagnóstico <i className="fa-solid fa-arrow-right" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -240,63 +301,148 @@ export default function DiagnosticoWizard() {
           </div>
         )}
 
-        {/* Paso 4: Rubro (con sugerencia IA) */}
+        {/* Paso 4: Resultados del test + elección de rol */}
         {paso === 4 && (
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Tu rubro IT</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Según tu perfil <strong>{RIASEC_LABELS[resultadoRiasec.dominante]}</strong> y tus
-              intereses, esto es lo que mejor encaja:
-            </p>
-            <div className="mt-4 space-y-2">
-              {sugerencias.map((s, i) => (
-                <div key={s.rubroId} className="flex items-center gap-3">
-                  <span className="w-28 text-sm font-medium text-slate-700">
-                    {i === 0 && "⭐ "}{s.nombre}
-                  </span>
-                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-full bg-accent-500" style={{ width: `${s.porcentaje}%` }} />
+            {/* Resumen de personalidad */}
+            <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-5 text-white">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-100">
+                Tu perfil vocacional
+              </p>
+              <p className="mt-1 text-2xl font-extrabold">
+                {RIASEC_LABELS[resultadoRiasec.dominante]}
+                <span className="ml-2 text-base font-medium text-brand-200">
+                  código {resultadoRiasec.codigo}
+                </span>
+              </p>
+              <p className="mt-1 text-sm text-brand-100">
+                Combinamos tu personalidad con tus intereses para encontrar tu lugar en IT.
+              </p>
+            </div>
+
+            {/* Áreas más afines (rubros) — visual mejorado */}
+            <h3 className="mt-6 mb-3 flex items-center gap-2 font-bold text-slate-800">
+              <i className="fa-solid fa-chart-simple text-brand-500" /> Tus áreas más afines
+            </h3>
+            <div className="space-y-3">
+              {sugerencias.map((s, i) => {
+                const rubro = RUBROS.find((r) => r.id === s.rubroId)!;
+                return (
+                  <div key={s.rubroId} className={clsx(
+                    "rounded-xl p-3 ring-1 transition",
+                    i === 0 ? "bg-accent-500/10 ring-accent-400/40" : "bg-slate-50 ring-slate-100"
+                  )}>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                        <span className="text-lg">{rubro.icono}</span>
+                        {s.nombre}
+                        {i === 0 && (
+                          <span className="chip bg-accent-500 text-white">
+                            <i className="fa-solid fa-star text-[10px]" /> top
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-sm font-bold text-slate-700">{s.porcentaje}%</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-white/70">
+                      <div
+                        className={clsx("h-full rounded-full", i === 0 ? "bg-accent-500" : "bg-brand-400")}
+                        style={{ width: `${s.porcentaje}%` }}
+                      />
+                    </div>
                   </div>
-                  <span className="w-10 text-right text-xs text-slate-500">{s.porcentaje}%</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            <p className="mt-6 mb-2 text-sm font-medium text-slate-700">Elegí tu rubro:</p>
-            <div className="grid grid-cols-2 gap-2">
-              {RUBROS.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => { setRubroIT(r.id); setSubRubro(""); }}
-                  className={clsx(
-                    "rounded-xl border p-3 text-left transition",
-                    rubroIT === r.id ? "border-brand-500 bg-brand-50" : "border-slate-200 hover:border-brand-300"
-                  )}
-                >
-                  <span className="text-xl">{r.icono}</span>
-                  <p className="text-sm font-semibold text-slate-800">{r.nombre}</p>
-                </button>
-              ))}
-            </div>
-
-            {subRubrosDisponibles.length > 0 && (
-              <>
-                <p className="mt-5 mb-2 text-sm font-medium text-slate-700">Especialización:</p>
-                <div className="flex flex-wrap gap-2">
-                  {subRubrosDisponibles.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => setSubRubro(s.id)}
-                      className={clsx(
-                        "rounded-full border px-3 py-1.5 text-sm transition",
-                        subRubro === s.id ? "border-brand-500 bg-brand-50 text-brand-700" : "border-slate-200 text-slate-600 hover:border-brand-300"
+            {/* Roles recomendados (subrubros) */}
+            <h3 className="mt-6 mb-1 flex items-center gap-2 font-bold text-slate-800">
+              <i className="fa-solid fa-wand-magic-sparkles text-accent-500" /> Roles que mejor encajan con vos
+            </h3>
+            <p className="mb-3 text-sm text-slate-500">Tocá uno para elegirlo como tu camino:</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {subSugerencias.map((s, i) => {
+                const elegido = rubroIT === s.rubroId && subRubro === s.subId;
+                return (
+                  <button
+                    key={s.subId}
+                    onClick={() => { setRubroIT(s.rubroId); setSubRubro(s.subId); }}
+                    className={clsx(
+                      "flex items-start gap-3 rounded-xl border p-3 text-left transition",
+                      elegido ? "border-brand-500 bg-brand-50 ring-1 ring-brand-200" : "border-slate-200 hover:border-brand-300"
+                    )}
+                  >
+                    <span className="text-xl">{s.icono}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-sm font-bold text-slate-800">{s.nombre}</p>
+                        {elegido && <i className="fa-solid fa-circle-check text-brand-600" />}
+                      </div>
+                      <p className="truncate text-xs text-slate-500">{s.rubroNombre}</p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-full rounded-full bg-accent-500" style={{ width: `${s.match}%` }} />
+                        </div>
+                        <span className="text-[11px] font-semibold text-accent-600">{s.match}% match</span>
+                      </div>
+                      {i === 0 && (
+                        <span className="mt-1.5 inline-block text-[11px] font-semibold text-accent-600">
+                          <i className="fa-solid fa-star text-[9px]" /> Tu mejor match
+                        </span>
                       )}
-                    >
-                      {s.nombre}
-                    </button>
-                  ))}
-                </div>
-              </>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Elección manual (override) */}
+            <details className="mt-5 rounded-xl border border-slate-200 p-3">
+              <summary className="cursor-pointer text-sm font-medium text-slate-600">
+                ¿Preferís elegir otro rol manualmente?
+              </summary>
+              <p className="mt-3 mb-2 text-sm font-medium text-slate-700">Rubro:</p>
+              <div className="grid grid-cols-2 gap-2">
+                {RUBROS.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => { setRubroIT(r.id); setSubRubro(""); }}
+                    className={clsx(
+                      "rounded-xl border p-3 text-left transition",
+                      rubroIT === r.id ? "border-brand-500 bg-brand-50" : "border-slate-200 hover:border-brand-300"
+                    )}
+                  >
+                    <span className="text-xl">{r.icono}</span>
+                    <p className="text-sm font-semibold text-slate-800">{r.nombre}</p>
+                  </button>
+                ))}
+              </div>
+              {subRubrosDisponibles.length > 0 && (
+                <>
+                  <p className="mt-4 mb-2 text-sm font-medium text-slate-700">Especialización:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {subRubrosDisponibles.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => setSubRubro(s.id)}
+                        className={clsx(
+                          "rounded-full border px-3 py-1.5 text-sm transition",
+                          subRubro === s.id ? "border-brand-500 bg-brand-50 text-brand-700" : "border-slate-200 text-slate-600 hover:border-brand-300"
+                        )}
+                      >
+                        {s.nombre}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </details>
+
+            {rubroIT && subRubro && (
+              <p className="mt-4 flex items-center gap-2 rounded-xl bg-brand-50 px-4 py-2.5 text-sm text-brand-800">
+                <i className="fa-solid fa-circle-check text-brand-600" />
+                Elegiste: <strong>{subRubrosDisponibles.find((s) => s.id === subRubro)?.nombre}</strong>
+              </p>
             )}
           </div>
         )}

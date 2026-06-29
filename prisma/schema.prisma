@@ -22,6 +22,7 @@ model User {
 
   perfil   Perfil?
   roadmap  Roadmap?
+  cv       Cv?
   accounts Account[]
   sessions Session[]
 
@@ -80,6 +81,10 @@ model Perfil {
   rubroIT  String? // "desarrollo" | "infraestructura" | "datos" | "gestion"
   subRubro String? // "web" | "mobile" | "gamedev" | "devops" | etc.
 
+  // Geolocalización (para sugerir carreras/tecnicaturas cercanas)
+  ciudad String?
+  pais   String? @default("Argentina")
+
   // Preferencia de costo
   preferenciaCosto String @default("mixto") // "gratis" | "pago" | "mixto"
 
@@ -123,6 +128,19 @@ model Micrometa {
   titulo      String
   fechaLimite DateTime?
   completada  Boolean   @default(false)
+}
+
+// ──────────────────────────────────────────────
+//  Mi CV (curriculum ATS-friendly, editable)
+// ──────────────────────────────────────────────
+
+model Cv {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data          Json // contenido editable del CV (ver lib/cv.ts -> CvData)
+  actualizadoEn DateTime @updatedAt
+  creadoEn      DateTime @default(now())
 }
 
 model Recurso {
